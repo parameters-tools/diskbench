@@ -1,6 +1,6 @@
 [package]
 name = "diskbench"
-version = "0.1.0"
+version = "0.2.0"
 edition = "2024"
 authors = ["Parameters Tools <parameters.tools@gmail.com>"]
 description = "A blazing-fast disk benchmark CLI with real-time terminal progress bars and direct Linux kernel I/O (O_DIRECT)."

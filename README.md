@@ -11,7 +11,7 @@
 
 # ⚡ DISKBENCH
 
-**A blazing-fast disk speed benchmark CLI with real-time terminal progress indicators and direct Linux kernel I/O (`O_DIRECT`). Styled after [`diskbar`](https://github.com/parameters-tools/diskbar).**
+**An industry-grade disk performance benchmark CLI with real-time terminal sparklines, queue-depth concurrency, hardware telemetry, thermal monitoring, and direct Linux kernel I/O (`O_DIRECT`). Styled after [`diskbar`](https://github.com/parameters-tools/diskbar).**
 
 [![Rust](https://img.shields.io/badge/rust-%23000000.svg?style=for-the-badge&logo=rust&logoColor=white)](https://www.rust-lang.org/)
 [![Linux](https://img.shields.io/badge/linux-%23FCC624.svg?style=for-the-badge&logo=linux&logoColor=black)](https://www.kernel.org/)
@@ -20,7 +20,9 @@
 [Features](#-features) •
 [One-Line Install](#-one-line-install) •
 [Usage](#-usage) •
-[How It Works](#-how-it-works) •
+[CrystalDiskMark Profile Suite](#-crystaldiskmark-profile-suite) •
+[Baseline Comparison](#-baseline-comparative-benchmarking) •
+[Hardware Telemetry](#-hardware-telemetry--thermal-monitoring) •
 [Security & Safety](#-security--safety-guarantees) •
 [License](#-license)
 
@@ -30,25 +32,36 @@
 
 ```text
 ⚡ DISK PERFORMANCE BENCHMARK (Direct Kernel I/O)
---------------------------------------------------------------------------------------
-TARGET: /home/kevin            | SIZE: 512M   | SEQ BLOCK: 1.0M | DIRECT I/O: ENABLED (O_DIRECT)
---------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------
+TARGET: /home/kevin            | MODEL: SK hynix PC711 HFS512GDE9X073N      
+TRANS:  NVMe (PCIe)            | PCIE:  5.0 GT/s PCIe x4 | TEMP: 42.8°C | SIZE: 1.0G  
+DIRECT I/O: ENABLED (O_DIRECT)
+--------------------------------------------------------------------------------------------------
 Running benchmark tests...
 
-  ✔ Seq Write      [████████████████████] 100%    2.48 GB/s  (0.21s)
-  ✔ Seq Read       [████████████████████] 100%    2.25 GB/s  (0.23s)
-  ✔ Rnd 4K Write   [████████████████████] 100%   142.1 MB/s  (0.45s)
-  ✔ Rnd 4K Read    [████████████████████] 100%    71.4 MB/s  (0.90s)
+  ✔ SEQ1M Q8T1 Write   [████████████████] 100%    2.48 GB/s  [p95: 8.30 ms]  (0.42s)
+  ✔ SEQ1M Q8T1 Read    [████████████████] 100%    2.53 GB/s  [p95: 4.43 ms]  (0.40s)
+  ✔ SEQ1M Q1T1 Write   [████████████████] 100%    1.85 GB/s  [p95:  729 µs]  (0.55s)
+  ✔ SEQ1M Q1T1 Read    [████████████████] 100%    2.10 GB/s  [p95:  688 µs]  (0.49s)
+  ✔ RND4K Q32T16 Write [████████████████] 100%    1.17 GB/s  [p95:   63 µs]  (0.08s)
+  ✔ RND4K Q32T16 Read  [████████████████] 100%   996.0 MB/s  [p95:   82 µs]  (0.10s)
+  ✔ RND4K Q1T1 Write   [████████████████] 100%   142.1 MB/s  [p95:   39 µs]  (0.22s)
+  ✔ RND4K Q1T1 Read    [████████████████] 100%    71.4 MB/s  [p95:   76 µs]  (0.45s)
 
 📊 BENCHMARK SUMMARY RESULTS
---------------------------------------------------------------------------------------
-TEST TYPE        BLOCK SIZE  TRANSFERRED     TIME          SPEED   PERFORMANCE BAR          RATING
---------------------------------------------------------------------------------------
-Seq Write              1.0M         512M    0.21s      2.48 GB/s   [██████████████████] ULTRA
-Seq Read               1.0M         512M    0.23s      2.25 GB/s   [████████████████░░] ULTRA
-Rnd 4K Write             4K          64M    0.45s     142.1 MB/s   [█░░░░░░░░░░░░░░░░░] GOOD
-Rnd 4K Read              4K          64M    0.90s      71.4 MB/s   [░░░░░░░░░░░░░░░░░░] SLOW
---------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------
+TEST PROFILE                SPEED       IOPS  LAT (p95)   PERFORMANCE BAR      RATING  THREADS
+--------------------------------------------------------------------------------------------------
+SEQ1M Q8T1 Write        2.48 GB/s       2.5k    8.30 ms   [██████████████] ULTRA       8
+SEQ1M Q8T1 Read         2.53 GB/s       2.6k    4.43 ms   [██████████████] ULTRA       8
+SEQ1M Q1T1 Write        1.85 GB/s       1.9k     729 µs   [██████████░░░░] FAST        1
+SEQ1M Q1T1 Read         2.10 GB/s       2.1k     688 µs   [███████████░░░] ULTRA       1
+RND4K Q32T16 Write      1.17 GB/s     307.5k      63 µs   [██████░░░░░░░░] FAST       16
+RND4K Q32T16 Read      996.0 MB/s     255.0k      82 µs   [█████░░░░░░░░░] FAST       16
+RND4K Q1T1 Write       142.1 MB/s      36.4k      39 µs   [█░░░░░░░░░░░░░] GOOD        1
+RND4K Q1T1 Read         71.4 MB/s      18.3k      76 µs   [░░░░░░░░░░░░░░] SLOW        1
+--------------------------------------------------------------------------------------------------
+Thermal status: 43.1°C (initial: 42.8°C, Δ: +0.3°C)
 ```
 
 ---
@@ -56,16 +69,18 @@ Rnd 4K Read              4K          64M    0.90s      71.4 MB/s   [░░░░
 ## ✨ Features
 
 - ⚡ **Direct Kernel I/O (`O_DIRECT`):** Bypasses the OS page cache using 4096-byte memory-aligned DMA buffers. Measures true physical NVMe, SSD, and HDD hardware throughput rather than RAM speeds.
-- 🎨 **Visual Aesthetic Matching `diskbar`:** Smooth Unicode progress bars (`█` / `░`), color-coded status ratings, and clean column layout.
-- 🏎️ **Positional Atomic I/O (`pread` / `pwrite`):** Random 4K operations execute in a single syscall via `FileExt`, avoiding `lseek` thrashing and cutting syscall overhead by half.
-- 🔄 **Comprehensive Testing:**
-  - **Sequential Write & Read** (1 MB blocks) for sustained high-throughput transfer.
-  - **Random 4K Write & Read** for IOPS simulation (OS boot, apps, databases).
+- 🧵 **Multi-Threaded Queue Concurrency:** Saturates PCIe Gen4/Gen5 NVMe submission queues with multi-worker threads (`SEQ1M Q8T1`, `RND4K Q32T16`) to benchmark peak hardware bandwidth and IOPS.
+- ⏱️ **Microsecond Latency Profiling:** Records granular execution times for every I/O operation. Calculates Average, Min, Max, and critical **95th percentile (p95) & 99th percentile (p99)** latency metrics.
+- 🌡️ **Hardware Telemetry & Thermal Guard:** Automatically queries Linux sysfs to report drive model, transport interface (`NVMe`, `SATA`, `USB`), PCIe link speed & lane width (`5.0 GT/s PCIe x4`), and active drive temperature. Warns if thermal throttling occurs during the test.
+- 📊 **Real-time ASCII Sparklines:** Displays an interactive live throughput sparkline (` ▂▃▄▅▆▇█`) during test execution.
+- ⚖️ **Baseline Comparison Mode (`--compare`):** Compare benchmark runs against a saved baseline with colored differential indicators (`+16.7% ▲` or `-3.2% ▼`).
+- 🔄 **Multi-Pass Runs (`--runs`):** Run multiple passes with automatic statistical averaging.
+- 🤖 **Machine-Readable JSON (`--json` & `--save`):** Plug results directly into CI/CD performance regression pipelines or automation scripts.
 - 🛡️ **Built-in Safety Guardrails:**
-  - Pre-flight `statvfs` disk space check prevents `ENOSPC` disk exhaustion.
+  - Pre-flight `statvfs` capacity check prevents `ENOSPC` disk exhaustion.
   - Symlink-hardened temporary file creation (`O_CREAT | O_EXCL` with mode `0600`).
   - Async-signal-safe RAII cleanup on `SIGINT` (Ctrl+C) and `SIGTERM`.
-- 🪶 **Zero Heavy Crates:** Pure Rust Standard Library + `libc`. Extremely lightweight with sub-second compile times.
+- 🪶 **Standalone Single Binary:** Pure Rust Standard Library + `libc`. Only ~450 KB with zero external dependencies.
 
 ---
 
@@ -96,52 +111,79 @@ sudo install -m 755 target/release/diskbench /usr/local/bin/diskbench
 
 ## 📖 Usage
 
-### Standard Sequential Test (512 MB)
+### Standard Quick Benchmark (512 MB)
 ```bash
 diskbench
 ```
 
-### Full Benchmark Suite (Sequential + Random 4K)
+### Complete CrystalDiskMark Profile Suite
 ```bash
 diskbench --all
 # or
 diskbench -a
 ```
 
-### Benchmark a Specific Mount / Drive with Custom Size
+### Benchmark with Custom File Size & Threads
 ```bash
-# Benchmark an external SSD or mount with a 1 GB file
-diskbench --path /mnt/drive --size 1G --all
+# Benchmark with 1 GB file using 4 worker threads
+diskbench --size 1G --threads 4
 
-# Test with 256 MB test size
-diskbench --size 256M
+# Benchmark a specific mount or external SSD
+diskbench --path /mnt/ssd --size 2G --all
 ```
 
-### CLI Options
+### Multi-Pass Averaging
+```bash
+# Run 3 benchmark iterations and compute average metrics
+diskbench --runs 3
+```
+
+### Baseline Saving & Comparison Mode
+```bash
+# 1. Save baseline before tuning
+diskbench --size 1G --save baseline.json
+
+# 2. Run comparative test after driver/kernel/filesystem changes
+diskbench --size 1G --compare baseline.json
+```
 
 ```text
-Usage: diskbench [OPTIONS]
+TEST PROFILE             BASELINE  CURRENT SPEED     DIFF %   PERFORMANCE BAR      LAT (p95)
+--------------------------------------------------------------------------------------------------
+Seq Write               1.85 GB/s      2.12 GB/s +14.6% ▲   [██████████████]   680 µs
+Seq Read                2.10 GB/s      2.18 GB/s  +3.8% ▲   [██████████████]   655 µs
+Rnd 4K Write           142.1 MB/s     151.3 MB/s  +6.5% ▲   [█░░░░░░░░░░░░░]    36 µs
+Rnd 4K Read             71.4 MB/s      69.8 MB/s  -2.2% ▼   [░░░░░░░░░░░░░░]    78 µs
+--------------------------------------------------------------------------------------------------
+```
 
-Options:
-  -p, --path <DIR>       Directory or mount path to benchmark (default: current dir)
-  -s, --size <SIZE>      Total test file size (e.g. 256M, 512M, 1G, 2G; default: 512M)
-  -a, --all              Run both Sequential and Random 4K benchmark tests
-      --no-direct        Disable O_DIRECT (use OS page cache + fsync)
-  -h, --help             Show this help screen
+### Machine-Readable JSON Export
+```bash
+diskbench --size 512M --json | jq .
 ```
 
 ---
 
-## 🛠️ How It Works
+## 📊 CrystalDiskMark Profile Suite
 
-### The Cache Bypass Problem
-When an application writes a file, modern operating systems store it in the **RAM page cache** before flushing to disk. Reading the file back often retrieves it straight from RAM, producing misleading speeds (e.g., 15+ GB/s on an old hard drive).
+Running with `--all` tests the 4 standard industry benchmark profiles:
 
-`diskbench` solves this directly at the kernel boundary:
-1. **DMA Buffer Alignment:** Allocates heap memory aligned to 4096-byte hardware boundaries (`std::alloc::Layout`).
-2. **`O_DIRECT` Syscalls:** Opens temporary test files with the Linux kernel's `O_DIRECT` flag, forcing storage controller DMA directly to/from user space memory.
-3. **Hardware Barrier (`fsync`):** Commits all pending controller queues to non-volatile physical storage before stopping the benchmark stopwatch.
-4. **Automatic Fallback:** If run on filesystems that disallow direct I/O (e.g., tmpfs or overlayfs), `diskbench` automatically falls back to standard I/O with `posix_fadvise(..., POSIX_FADV_DONTNEED)` cache invalidation and notifies you.
+| Profile | Block Size | Concurrency | Real-World Workload Simulated |
+| :--- | :--- | :--- | :--- |
+| **`SEQ1M Q8T1`** | 1 MB | 8 Threads | Peak sustained streaming bandwidth (large movie/ISO transfers, video editing). |
+| **`SEQ1M Q1T1`** | 1 MB | 1 Thread | Standard single-stream file read/write performance. |
+| **`RND4K Q32T16`** | 4 KB | 16 Threads | Peak drive IOPS under heavy multi-process server / database load. |
+| **`RND4K Q1T1`** | 4 KB | 1 Thread | **Single-queue low latency**: Dictates app launches, OS boot responsiveness, and general snappiness. |
+
+---
+
+## 🛠️ Hardware Telemetry & Thermal Monitoring
+
+`diskbench` queries the Linux kernel's sysfs tree (`/sys/dev/block/`, `/sys/class/nvme/`, and `/sys/class/hwmon/`) to provide hardware context alongside speed metrics:
+- **Device Model:** Extracted from device descriptors (e.g. `Samsung SSD 990 PRO 2TB`, `SK hynix PC711`).
+- **Transport Interface:** Identifies NVMe over PCIe, SATA/SCSI, eMMC, or USB.
+- **PCIe Link Speed & Lane Count:** Verifies if the drive operates at full capacity (e.g. `16.0 GT/s PCIe x4` vs degraded `x2` lanes).
+- **Active Thermal Monitoring:** Records operating temperature before and after testing. Warns with `🔥 WARNING` if drive temperature reaches 70°C or thermal throttling limits.
 
 ---
 
