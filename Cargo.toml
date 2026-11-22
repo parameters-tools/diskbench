@@ -1,0 +1,15 @@
+[package]
+name = "diskbench"
+version = "0.1.0"
+edition = "2024"
+authors = ["Parameters Tools <parameters.tools@gmail.com>"]
+description = "A blazing-fast disk benchmark CLI with real-time terminal progress bars and direct Linux kernel I/O (O_DIRECT)."
+readme = "README.md"
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/parameters-tools/diskbench"
+homepage = "https://github.com/parameters-tools/diskbench"
+keywords = ["cli", "disk", "benchmark", "storage", "linux"]
+categories = ["command-line-utilities", "system"]
+
+[dependencies]
+libc = "0.2"
